@@ -1,0 +1,27 @@
+persistentVolumeSize: 200Gi
+
+server:
+  xmx: -Xmx16g
+  resources:
+    requests:
+      cpu: 4000m
+      memory: 16Gi
+
+sensor:
+  xmx: -Xmx16g
+  resources:
+    requests:
+      cpu: 8000m
+      memory: 16Gi
+
+postgres:
+  resources:
+    requests:
+      cpu: 4000m
+      memory: 8Gi
+
+nginx:
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 1Gi
