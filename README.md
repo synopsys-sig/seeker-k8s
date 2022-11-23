@@ -1,41 +1,29 @@
 
 ## Deploy Seeker Server on Kubernetes
 
-Deploy the Seeker server on Kubernetes by building and deploying the prepackaged Docker images.
+Deploy the Seeker server on Kubernetes using the [Iron Bank](https://ironbank.dso.mil/repomap/products) registry.
 
 **Prerequisites**  
-* You have downloaded the Seeker installer for Linux, and have access to:
   * A Kubernetes cluster version 1.19 or higher
-  * A Docker registry with push authorization
   * Helm version 2.x/3.x
-* The installer file, for example, seeker-server-linux64-2022.6.0.sh, is copied to the ./images/installer/ folder
-
-After you chose the *Kubernetes* deployment option in the installer, the Seeker Docker deployment package has been downloaded and extracted into the `seeker_docker` subfolder of the installation folder.
-
-**Note:** You can customize any settings in the Dockerfiles, .yaml and .sh files.
 
 To deploy the Seeker server on Kubernetes, perform the following steps:
 
-### Build the Seeker Docker images.
-
-Set the DOCKER_REGISTRY environment variable to your Docker registry host name, for example, my-registry.azurecr.io, and run the build script to build and publish all the images to your registry.
-   ```
-   cd images
-   export DOCKER_REGISTRY=my-registry.azurecr.io
-   ./build.sh
-   ```
-
 ### Deploy the Seeker images to a Kubernetes cluster.
 
-1. Navigate to the Seeker Helm chart folder:
+1. Clone the Seeker helm chart:
    ```
-   cd orchestrators/kubernetes/seeker
+   git clone https://github.com/synopsys-sig/seeker-k8s
+   cd seeker-k8s
    ```
 1. Create the Seeker Namespace:
    ```
    kubectl create ns seeker
    ```
-1. Create a `secret.yaml` file to hold your database password. Use the following pattern, substituting the `dbpass` value with your password encoded with base64.
+### Use the following installation options:
+
+1. Create a secret that will hold your database password.
+   a. Create a `secret.yaml`. Use the following pattern, substituting the `dbpass` value with your password encoded with base64.
    ```
    apiVersion: v1
    kind: Secret
@@ -44,39 +32,43 @@ Set the DOCKER_REGISTRY environment variable to your Docker registry host name, 
      namespace: seeker
    type: Opaque
    data:
-     dbpass: dGVzdAo=   
+     dbpass: dGVzdAo=
    ```
    b. Deploy `secret.yaml`.
    ```
-   kubectl apply -f secret.yaml
+   kubectl -n seeker apply -f secret.yaml
    ```
-
-### Use the following installation options:
-
+1. Create a docker registry sercret to pull the Seeker images from ironbank:
+   ```
+   kubectl -n seeker create secret docker-registry regcred \
+      --docker-server=registry1.dso.mil/ironbank \
+      --docker-username=user \
+      --docker-password=password
+   ```
 1. Install the Seeker chart (default).
    ```
-   helm install --namespace seeker --set registry=${DOCKER_REGISTRY}  seeker .
+   helm install --namespace seeker --set imagePullSecrets=regcred --set externalDatabasePasswordSecret=seeker-dbpass seeker ./seeker
    ```
 1. Install with sizing restrictions.  
    Depending on your deployment size,  use the following command with the corresponding file name, for example, `medium.yaml`.
    ```
-   helm install --namespace seeker --set registry=${DOCKER_REGISTRY} -f medium.yaml seeker .
+   helm install --namespace seeker --set imagePullSecrets=regcred --set externalDatabasePasswordSecret=seeker-dbpass -f medium.yaml seeker ./seeker
    ```
    To choose the appropriate size, see Sizing Guidelines.
-1. Install with a user-managed database:        
+1. Install with a user-managed database:
    ```
    helm install \
       --namespace seeker \
-      --set registry=${DOCKER_REGISTRY} \
+      --set imagePullSecrets=regcred \
       --set seekerManagedDatabase.enabled=false \
       --set externalDatabaseHost=database-host \
       --set externalDatabasePort=5432 \
       --set externalDatabaseName=seeker-db \
-      --set externalDatabaseUsername=seeker-user
+      --set externalDatabaseUsername=seeker-user \
+      --set externalDatabasePasswordSecret=seeker-dbpass \
       -f medium.yaml \
-      seeker .
+      seeker ./seeker
    ```
-
 ### Next Steps
 The deployment might take a few minutes to complete. Once completed, verify its results.
 ```

@@ -25,26 +25,32 @@ spec:
       {{- end }}
       initContainers:
         - name: set-data-dir-owner
-          image: alpine:3
-          # Give `postgres` user (id 26) permissions to the seeker data volume
+          image: {{ .Values.registry }}/{{ .Values.postgres.image }}:{{ .Values.postgres.tag }}
+          # Give `postgres` user permissions to the seeker data volume
           command:
-            - chown
-            - -R
-            - 26:26
-            - /seeker-data
+            - /bin/sh
+            - -c
+            - |
+              if [ "$EUID" -ne 0 ]; then
+                echo "User is not root, no need to change data ownership"
+                exit 0
+              fi
+              chown -R "$(id --user postgres)":"$(id --user postgres)" /seeker-data
           volumeMounts:
             - name: seeker-data
               mountPath: "/seeker-data"
       containers:
         - name: seeker-postgres
-          image: {{ .Values.registry }}/{{ .Values.postgres.image }}:{{ .Values.imageTag }}
+          image: {{ .Values.registry }}/{{ .Values.postgres.image }}:{{ .Values.postgres.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           args: ["-c", "shared_buffers=512MB", "-c", "max_connections=200", "-c", "work_mem=32MB"]
           env:
             - name: PGDATA
-              value: "/seeker-data/data/server/pg_data"
+              value: "/seeker-data/data/server/{{ .Values.postgres.dataFolderName }}"
             - name: POSTGRES_PASSWORD_FILE
               value: "/opt/seeker/secrets/dbpass"
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "md5"
             {{- include "seeker.db.env.vars" . | nindent 12 }}
           ports:
             - containerPort: 5432
@@ -64,7 +70,7 @@ spec:
             claimName: {{ .Release.Name }}-data-pvc
         - name: dbpass
           secret:
-            secretName: {{ .Values.databasePasswordSecret }}
+            secretName: {{ .Values.externalDatabasePasswordSecret }}
         - name: dshm
           emptyDir:
             medium: Memory
