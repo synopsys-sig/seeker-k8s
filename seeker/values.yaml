@@ -15,19 +15,19 @@ externalDatabaseHost: ""
 externalDatabasePort: ""
 externalDatabaseName: ""
 externalDatabaseUsername: ""
-# databasePasswordSecret is the name of the secret that contains the password for the DB
-databasePasswordSecret: "seeker-dbpass"
+# externalDatabasePasswordSecret is the name of the secret that contains the password for the DB
+externalDatabasePasswordSecret: ""
 
 securityContext: {}
 
 storageClassName: ""
 persistentVolumeSize: 100Gi
 
-registry: seeker-local
-imageTag: 2022.6.0
+registry: registry1.dso.mil
+imageTag: 2022.11.0
 
 server:
-  image: seeker-server
+  image: ironbank/synopsys/seeker/seeker-server
   xmx: -Xmx4g
   resources:
     requests:
@@ -35,7 +35,7 @@ server:
       memory: 100Mi
 
 sensor:
-  image: seeker-sensor
+  image: ironbank/synopsys/seeker/seeker-sensor
   xmx: -Xmx4g
   resources:
     requests:
@@ -43,14 +43,16 @@ sensor:
       memory: 100Mi
 
 postgres:
-  image: seeker-postgres
+  image: ironbank/synopsys/seeker/seeker-postgres
+  tag: 2022.11.0
+  dataFolderName: pg_data_14
   resources:
     requests:
       cpu: 100m
       memory: 100Mi
 
 nginx:
-  image: seeker-nginx
+  image: ironbank/synopsys/seeker/seeker-nginx
   resources:
     requests:
       cpu: 100m

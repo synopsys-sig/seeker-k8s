@@ -1,47 +1,49 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-server
+  name: {{ .Release.Name }}-sensor
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "seeker.labels" . | nindent 4 }}
-    component: server
+    component: sensor
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
     type: {{ .Values.updateStrategy }}
   selector:
     matchLabels:
-      app: seeker-server
+      app: seeker-sensor
   template:
     metadata:
       labels:
-        app: seeker-server
+        app: seeker-sensor
     spec:
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecrets }}
       {{- end }}
       initContainers:
-        - name: wait-for-database
+        - name: wait-for-server
           image: busybox:stable
-          command: ['sh', '-c', 'until nc -vz -w 1 {{ .Values.externalDatabaseHost | default "seeker-postgres-service" | quote }} {{ .Values.externalDatabasePort | default "5432" | quote }}; do echo "Waiting for database service"; sleep 5; done;']
+          command: ['sh', '-c', 'until nc -vz -w 1 seeker-server-service 8082; do echo "Waiting for seeker-server service"; sleep 5; done;']
       containers:
-        - name: seeker-server
-          image: {{ .Values.registry }}/{{ .Values.server.image }}:{{ .Values.imageTag }}
+        - name: seeker-sensor
+          image: {{ .Values.registry }}/{{ .Values.sensor.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           env:
+            - name: SEEKER_URL
+              value: "http://seeker-server-service:8082"
             - name: SEEKER_SERVER_HTTP_PORT
               value: "8082"
-            - name: SEEKER_SERVER_JAVA_OPTS
-              value: {{ .Values.server.xmx | quote }}
+            - name: SEEKER_SENSOR_JAVA_OPTS
+              value: {{ .Values.sensor.xmx | quote }}
             - name: SEEKER_BIND_HOST
               value: "0.0.0.0"
             {{- include "seeker.db.env.vars" . | nindent 12 }}
           ports:
-            - containerPort: 8082
+            - containerPort: 9911
           resources:
-            {{- toYaml .Values.server.resources | nindent 12 }}
+            {{- toYaml .Values.sensor.resources | nindent 12 }}
           volumeMounts:
             - name: dbpass
               mountPath: "/opt/seeker/secrets"
@@ -49,21 +51,21 @@ spec:
       volumes:
         - name: dbpass
           secret:
-            secretName: {{ .Values.databasePasswordSecret }}
+            secretName: {{ .Values.externalDatabasePasswordSecret }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8}}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: seeker-server-service
+  name: seeker-sensor-service
   namespace: seeker
 spec:
   type: ClusterIP
   selector:
-    app: seeker-server
+    app: seeker-sensor
   ports:
     - name: "http"
       protocol: TCP
-      port: 8082
-      targetPort: 8082
+      port: 9911
+      targetPort: 9911
