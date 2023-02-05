@@ -41,7 +41,7 @@ To deploy the Seeker server on Kubernetes, perform the following steps:
 1. Create a docker registry sercret to pull the Seeker images from ironbank:
    ```
    kubectl -n seeker create secret docker-registry regcred \
-      --docker-server=registry1.dso.mil/ironbank \
+      --docker-server=registry1.dso.mil \
       --docker-username=user \
       --docker-password=password
    ```

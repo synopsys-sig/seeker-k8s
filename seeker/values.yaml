@@ -24,7 +24,7 @@ storageClassName: ""
 persistentVolumeSize: 100Gi
 
 registry: registry1.dso.mil
-imageTag: 2022.11.0
+imageTag: 2023.1.0
 
 server:
   image: ironbank/synopsys/seeker/seeker-server
