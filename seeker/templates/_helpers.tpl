@@ -23,9 +23,9 @@ Env vars for database
 - name: SEEKER_SERVER_DB_PORT
   value: {{ .Values.externalDatabasePort | default "5432" | quote }}
 - name: SEEKER_SERVER_DB_USER
-  value: {{ .Values.externalDatabaseUser | default "seeker" | quote }}
+  value: {{ .Values.externalDatabaseUsername | default "seeker" | quote }}
 - name: POSTGRES_USER
-  value: {{ .Values.externalDatabaseUser | default "seeker" | quote }}
+  value: {{ .Values.externalDatabaseUsername | default "seeker" | quote }}
 - name: SEEKER_SERVER_DB_NAME
   value: {{ .Values.externalDatabaseName | default "inline" | quote }}
 - name: POSTGRES_DB
