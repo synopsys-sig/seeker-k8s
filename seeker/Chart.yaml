@@ -1,5 +1,5 @@
 apiVersion: v2
 name: seeker
 description: Seeker Helm Chart
-version: "2023.7.0"
-appVersion: "2023.7.0"
+version: "2024.6.0"
+appVersion: "2024.6.0"

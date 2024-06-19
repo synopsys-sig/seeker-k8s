@@ -32,7 +32,11 @@ spec:
             - -c
             - |
               if [ "$EUID" -ne 0 ]; then
-                echo "User is not root, no need to change data ownership"
+                echo "INFO: User is not root, no need to change data ownership"
+                exit 0
+              fi
+              if [ "$EUID" = "" ]; then
+                echo "INFO: EUID is not set, no need to change data ownership"
                 exit 0
               fi
               chown -R "$(id --user postgres)":"$(id --user postgres)" /seeker-data

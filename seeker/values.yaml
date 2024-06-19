@@ -18,17 +18,36 @@ externalDatabaseUsername: ""
 # externalDatabasePasswordSecret is the name of the secret that contains the password for the DB
 externalDatabasePasswordSecret: ""
 
+# fill all fields in order use an SMTP server
+smtp:
+  enabled: false
+  host: ""
+  port: ""
+  protocol: "SMTP"
+  username: ""
+  sender: "noreply@synopsys.com"
+  subjectPrefix: "[Seeker]"
+  tls: "true"
+
+# smtpPasswordSecret is the name of the secret that contains the password for the SMTP
+smtpPasswordSecret: ""
+
+installationType: ""
+
 securityContext: {}
 
 storageClassName: ""
 persistentVolumeSize: 100Gi
 
 registry: registry1.dso.mil
-imageTag: 2023.7.0
+imageTag: 2024.6.0
 
 server:
   image: ironbank/synopsys/seeker/seeker-server
   xmx: -Xmx4g
+  healthCheckMinFreeMemoryEnabled: "true"
+  healthCheckMinFreeMemory: "500"
+  healthCheckMinFreeMemoryFailureCount: "5"
   resources:
     requests:
       cpu: 100m
@@ -44,7 +63,7 @@ sensor:
 
 postgres:
   image: ironbank/synopsys/seeker/seeker-postgres
-  tag: 2023.7.0
+  tag: 2024.6.0
   dataFolderName: pg_data_14
   resources:
     requests:

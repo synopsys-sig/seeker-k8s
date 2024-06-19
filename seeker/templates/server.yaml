@@ -37,6 +37,34 @@ spec:
               value: {{ .Values.server.xmx | quote }}
             - name: SEEKER_BIND_HOST
               value: "0.0.0.0"
+            - name: SEEKER_HEALTH_CHECK_MIN_FREE_MEMORY_ENABLED
+              value: {{ .Values.server.healthCheckMinFreeMemoryEnabled | quote }}
+            - name: SEEKER_HEALTH_CHECK_MIN_FREE_MEMORY
+              value: {{ .Values.server.healthCheckMinFreeMemory | quote }}
+            - name: SEEKER_HEALTH_CHECK_MIN_FREE_MEMORY_FAILURE_COUNT
+              value: {{ .Values.server.healthCheckMinFreeMemoryFailureCount | quote }}
+            {{- if .Values.installationType }}
+            - name: SEEKER_INSTALLATION_TYPE
+              value: {{ .Values.installationType | quote }}
+            {{- end }}
+            {{- if .Values.smtp.enabled }}
+            - name: SEEKER_SMTP_ENABLED
+              value: "true"
+            - name: SEEKER_SMTP_HOST
+              value: {{ .Values.smtp.host | quote }}
+            - name: SEEKER_SMTP_PORT
+              value: {{ .Values.smtp.port | quote }}
+            - name: SEEKER_SMTP_PROTOCOL
+              value: {{ .Values.smtp.protocol | quote }}
+            - name: SEEKER_SMTP_USERNAME
+              value: {{ .Values.smtp.username | quote }}
+            - name: SEEKER_SMTP_SENDER
+              value: {{ .Values.smtp.sender | quote }}
+            - name: SEEKER_SMTP_SUBJECT_PREFIX
+              value: {{ .Values.smtp.subjectPrefix | quote }}
+            - name: SEEKER_SMTP_TLS
+              value: {{ .Values.smtp.tls | quote }}
+            {{- end }}
             {{- include "seeker.db.env.vars" . | nindent 12 }}
           ports:
             - containerPort: 8082
